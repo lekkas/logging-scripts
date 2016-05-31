@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+# set -o xtrace
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source ${DIR}/../utils.sh
+
+echo "Creating logspout image (can take a few minutes).."
+createImage
+
+echo "Creating logspout container.."
+containerId=$(createContainer | jq '.Id' | tr -d '"')
+
+echo "Starting logspout container.."
+startContainer ${containerId}

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+# set -o xtrace
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source ${DIR}/../utils.sh
+
+containers=($(listContainers | jq -c '.[] | select (.Image | contains("logspout")) | .Id' | tr -d '"'))
+if [ ${#containers[@]} -ge 1 ]; then
+	echo "Stopping containers.."
+	for i in "${containers[@]}"; do
+		stopContainer ${i} &>/dev/null
+	done
+
+	echo "Deleting logspout containers.."
+	for i in "${containers[@]}"; do
+		deleteContainer ${i} &>/dev/null
+	done
+fi
+
+images=($(listImages | jq -c '.[] | select (.RepoTags[] | contains("logspout")) | .Id' | tr -d '"'))
+if [ ${#images[@]} -ge 1 ]; then
+	echo "Deleting logspout image.."
+	for i in "${images[@]}"; do
+		deleteImage ${i} &>/dev/null
+	done
+fi
